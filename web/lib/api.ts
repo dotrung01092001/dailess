@@ -93,6 +93,10 @@ export const api = {
     return response.json() as Promise<{ moment: Moment }>;
   },
   resolveImage(url: string) {
+    if (/^https?:\/\//.test(url)) {
+      return url;
+    }
+
     return `${SOCKET_URL.replace(/\/$/, "")}${url}`;
   }
 };

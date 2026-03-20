@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
-import { User } from "../models/User.js";
+import { getHydratedUser } from "../lib/store.js";
 import { connectPartners, disconnectPartner } from "../services/partner-service.js";
 import { inviteSchema } from "../validation/partner.js";
 
@@ -10,7 +10,7 @@ partnerRouter.use(requireAuth);
 
 partnerRouter.get("/status", async (req, res, next) => {
   try {
-    const user = await User.findById(req.user!.userId).populate("partnerId");
+    const user = await getHydratedUser(req.user!.userId);
     res.json({ user });
   } catch (error) {
     next(error);

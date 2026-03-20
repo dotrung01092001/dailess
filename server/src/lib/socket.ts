@@ -3,9 +3,13 @@ import { Server } from "socket.io";
 import { env } from "../config/env.js";
 import { getConversationKey } from "./conversation.js";
 import { verifyToken } from "../utils/jwt.js";
-import { User } from "../models/User.js";
-import { Message } from "../models/Message.js";
-import { Moment } from "../models/Moment.js";
+import {
+  createMessageRow,
+  getMessageById,
+  getMomentById,
+  getUserRowById,
+  markMessageSeen
+} from "./store.js";
 
 export function createSocketServer(httpServer: HttpServer) {
   const io = new Server(httpServer, {
@@ -26,7 +30,7 @@ export function createSocketServer(httpServer: HttpServer) {
   });
 
   io.on("connection", async (socket) => {
-    const user = await User.findById(socket.data.user.userId);
+    const user = await getUserRowById(socket.data.user.userId);
 
     if (!user) {
       socket.disconnect();
@@ -35,35 +39,35 @@ export function createSocketServer(httpServer: HttpServer) {
 
     socket.join(user.id);
 
-    if (user.partnerId) {
-      socket.join(getConversationKey(user.id, user.partnerId.toString()));
+    if (user.partner_id) {
+      socket.join(getConversationKey(user.id, user.partner_id));
     }
 
     socket.on("typing:start", async () => {
-      const freshUser = await User.findById(socket.data.user.userId);
-      if (!freshUser?.partnerId) return;
-      io.to(freshUser.partnerId.toString()).emit("typing:start", {
+      const freshUser = await getUserRowById(socket.data.user.userId);
+      if (!freshUser?.partner_id) return;
+      io.to(freshUser.partner_id).emit("typing:start", {
         from: freshUser.id
       });
     });
 
     socket.on("typing:stop", async () => {
-      const freshUser = await User.findById(socket.data.user.userId);
-      if (!freshUser?.partnerId) return;
-      io.to(freshUser.partnerId.toString()).emit("typing:stop", {
+      const freshUser = await getUserRowById(socket.data.user.userId);
+      if (!freshUser?.partner_id) return;
+      io.to(freshUser.partner_id).emit("typing:stop", {
         from: freshUser.id
       });
     });
 
     socket.on("message:send", async ({ body }: { body: string }) => {
-      const freshUser = await User.findById(socket.data.user.userId);
-      if (!freshUser?.partnerId || !body?.trim()) return;
+      const freshUser = await getUserRowById(socket.data.user.userId);
+      if (!freshUser?.partner_id || !body?.trim()) return;
 
-      const receiverId = freshUser.partnerId.toString();
+      const receiverId = freshUser.partner_id;
       const conversationKey = getConversationKey(freshUser.id, receiverId);
-      const message = await Message.create({
+      const message = await createMessageRow({
         conversationKey,
-        senderId: freshUser._id,
+        senderId: freshUser.id,
         receiverId,
         body: body.trim(),
         status: "delivered"
@@ -73,11 +77,8 @@ export function createSocketServer(httpServer: HttpServer) {
     });
 
     socket.on("message:seen", async ({ messageId }: { messageId: string }) => {
-      const message = await Message.findByIdAndUpdate(
-        messageId,
-        { status: "seen", seenAt: new Date() },
-        { new: true }
-      );
+      await markMessageSeen(messageId);
+      const message = await getMessageById(messageId);
 
       if (message) {
         io.to(getConversationKey(message.senderId.toString(), message.receiverId.toString())).emit(
@@ -88,7 +89,7 @@ export function createSocketServer(httpServer: HttpServer) {
     });
 
     socket.on("moment:new", async ({ momentId }: { momentId: string }) => {
-      const moment = await Moment.findById(momentId);
+      const moment = await getMomentById(momentId);
       if (!moment) return;
       io.to(moment.receiverId.toString()).emit("moment:new", moment);
     });
@@ -96,4 +97,3 @@ export function createSocketServer(httpServer: HttpServer) {
 
   return io;
 }
-

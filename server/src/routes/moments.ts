@@ -1,9 +1,7 @@
 import { Router } from "express";
-import path from "node:path";
 import { requireAuth } from "../middleware/auth.js";
 import { getConversationKey } from "../lib/conversation.js";
-import { Moment } from "../models/Moment.js";
-import { User } from "../models/User.js";
+import { createMomentRow, listActiveMoments, requirePartneredUser, uploadMomentFile } from "../lib/store.js";
 import { upload } from "../services/upload.js";
 import { AppError } from "../utils/errors.js";
 
@@ -13,18 +11,9 @@ momentRouter.use(requireAuth);
 
 momentRouter.get("/", async (req, res, next) => {
   try {
-    const user = await User.findById(req.user!.userId);
-
-    if (!user?.partnerId) {
-      throw new AppError("Connect with your partner first.", 400);
-    }
-
-    const conversationKey = getConversationKey(user.id, user.partnerId.toString());
-    const moments = await Moment.find({
-      conversationKey,
-      expiresAt: { $gt: new Date() }
-    }).sort({ createdAt: -1 });
-
+    const user = await requirePartneredUser(req.user!.userId);
+    const conversationKey = getConversationKey(user.id, user.partner_id!);
+    const moments = await listActiveMoments(conversationKey);
     res.json({ moments });
   } catch (error) {
     next(error);
@@ -33,25 +22,22 @@ momentRouter.get("/", async (req, res, next) => {
 
 momentRouter.post("/", upload.single("photo"), async (req, res, next) => {
   try {
-    const user = await User.findById(req.user!.userId);
-
-    if (!user?.partnerId) {
-      throw new AppError("Connect with your partner first.", 400);
-    }
+    const user = await requirePartneredUser(req.user!.userId);
 
     if (!req.file) {
       throw new AppError("A captured photo is required.", 400);
     }
 
-    const receiverId = user.partnerId.toString();
-    const imageUrl = `/uploads/${path.basename(req.file.filename)}`;
-    const moment = await Moment.create({
-      conversationKey: getConversationKey(user.id, receiverId),
-      senderId: user._id,
+    const receiverId = user.partner_id!;
+    const conversationKey = getConversationKey(user.id, receiverId);
+    const imagePath = await uploadMomentFile(req.file, conversationKey);
+    const moment = await createMomentRow({
+      conversationKey,
+      senderId: user.id,
       receiverId,
-      imageUrl,
+      imagePath,
       filter: typeof req.body.filter === "string" ? req.body.filter : "soft",
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
     });
 
     res.status(201).json({ moment });
@@ -59,4 +45,3 @@ momentRouter.post("/", upload.single("photo"), async (req, res, next) => {
     next(error);
   }
 });
-

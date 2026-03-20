@@ -5,9 +5,9 @@ Dailess is a romantic, mobile-first full-stack web app for two connected people 
 ## Stack
 
 - Next.js 15 + React 19 + Tailwind CSS
-- Express + Socket.io + MongoDB + Mongoose
+- Express + Socket.io
+- Supabase Postgres + Supabase Storage
 - JWT authentication
-- Temporary image storage with 24-hour expiry
 
 ## Features
 
@@ -23,6 +23,7 @@ Dailess is a romantic, mobile-first full-stack web app for two connected people 
 
 - `web`: Next.js frontend
 - `server`: Express API, Socket.io server
+- `server/supabase/schema.sql`: SQL schema for Supabase
 - `netlify.toml`: Netlify frontend deploy config
 - `render.yaml`: Render backend deploy config
 
@@ -31,12 +32,13 @@ Dailess is a romantic, mobile-first full-stack web app for two connected people 
 ### `server/.env`
 
 ```env
-PORT=4000
-MONGODB_URI=mongodb://127.0.0.1:27017/dailess
 JWT_SECRET=change-me-please
 CLIENT_URL=http://localhost:3000
-UPLOAD_DIR=uploads
 NODE_ENV=development
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_STORAGE_BUCKET=moments
+PORT=4000
 ```
 
 ### `web/.env.local`
@@ -46,6 +48,18 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api
 NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
 ```
 
+## Supabase setup
+
+1. Create a Supabase project.
+2. Open the SQL editor.
+3. Run the SQL in [server/supabase/schema.sql](./server/supabase/schema.sql).
+4. In Storage, confirm the `moments` bucket exists.
+5. Copy these values from Supabase:
+   - Project URL
+   - Service role key
+
+Reference: https://supabase.com/docs/guides/getting-started
+
 ## Run locally
 
 1. Install dependencies:
@@ -54,7 +68,9 @@ NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
 npm.cmd install
 ```
 
-2. Create the environment files shown above.
+2. Create the environment files from:
+   - [server/.env.example](./server/.env.example)
+   - [web/.env.local.example](./web/.env.local.example)
 
 3. Run the app:
 
@@ -66,35 +82,34 @@ npm.cmd run dev
 
 ## Deploy plan
 
-### 1. MongoDB Atlas
+### 1. Supabase
 
-Create an Atlas cluster and copy its connection string.
+Use your Supabase project for both database and storage.
 
-Set your backend connection string in this format:
+Backend environment variables:
 
 ```env
-MONGODB_URI=mongodb+srv://USERNAME:PASSWORD@CLUSTER_URL/dailess?retryWrites=true&w=majority
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_STORAGE_BUCKET=moments
 ```
-
-Reference: https://www.mongodb.com/docs/manual/reference/connection-string/index.html
 
 ### 2. Backend on Render
 
 This repo includes [render.yaml](./render.yaml).
-
-Create a new Render Blueprint or Web Service from this repository.
 
 Required environment variables on Render:
 
 ```env
 NODE_ENV=production
 JWT_SECRET=your-long-random-secret
-MONGODB_URI=your-atlas-connection-string
 CLIENT_URL=https://your-netlify-site.netlify.app
-UPLOAD_DIR=uploads
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_STORAGE_BUCKET=moments
 ```
 
-Use the backend health endpoint to confirm deployment:
+Health endpoint:
 
 ```text
 https://your-render-service.onrender.com/api/health
@@ -103,8 +118,6 @@ https://your-render-service.onrender.com/api/health
 ### 3. Frontend on Netlify
 
 This repo includes [netlify.toml](./netlify.toml).
-
-Connect the repository to Netlify. The config uses `web` as the base directory.
 
 Add these environment variables in Netlify:
 
@@ -119,13 +132,12 @@ Reference: https://docs.netlify.com/configure-builds/file-based-configuration/
 
 ## Production notes
 
-- In production, the server will not fall back to `mongodb-memory-server`. A real Atlas connection is required.
-- Image uploads are currently stored on the backend filesystem. This is acceptable for a first deployment, but Render disks are not ideal for long-term media retention. For stronger production durability, move uploads to Cloudinary, S3, or another object store.
-- Captured photos are sent directly from the in-app camera flow and are not saved by the app to the device gallery.
-- Moment records expire automatically after 24 hours with a MongoDB TTL index.
+- The backend now uses Supabase Postgres for users, messages, and moments.
+- Moment images are uploaded to Supabase Storage and returned as signed URLs.
+- Expired moments are cleaned up by the backend interval and removed from both Postgres and Storage.
+- Because the backend uses the Supabase service role key, keep that key server-side only. Never expose it to the frontend.
 
-## Platform notes
+## Verification
 
-- Netlify is suitable here for the Next.js frontend.
-- Render is suitable for the persistent Node.js + Socket.io backend.
-- MongoDB Atlas is the recommended production database for this stack.
+- Backend TypeScript build passes after the Supabase migration.
+- Frontend was not rebuilt in this session because local Next.js SWC execution on this machine is restricted by policy, but the public API contract used by the current UI was preserved.

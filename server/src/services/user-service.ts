@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { User } from "../models/User.js";
+import { createUserRow, getUserRowByEmail } from "../lib/store.js";
 import { AppError } from "../utils/errors.js";
 import { comparePassword, hashPassword } from "../utils/auth.js";
 import { signToken } from "../utils/jwt.js";
@@ -10,34 +10,39 @@ export async function registerUser(input: {
   displayName: string;
 }) {
   const email = input.email.toLowerCase().trim();
-  const existing = await User.findOne({ email });
+  const existing = await getUserRowByEmail(email);
 
   if (existing) {
     throw new AppError("An account with that email already exists.", 409);
   }
 
-  const user = await User.create({
+  const user = await createUserRow({
     email,
     displayName: input.displayName.trim(),
-    passwordHash: await hashPassword(input.password),
-    inviteCode: nanoid(10).toUpperCase()
+    passwordHash: await hashPassword(input.password)
   });
 
   return {
-    token: signToken({ userId: user._id.toString(), email: String(user.email) }),
+    token: signToken({ userId: user.id, email: user.email }),
     user
   };
 }
 
 export async function loginUser(input: { email: string; password: string }) {
-  const user = await User.findOne({ email: input.email.toLowerCase().trim() });
+  const user = await getUserRowByEmail(input.email.toLowerCase().trim());
 
-  if (!user || !(await comparePassword(input.password, String(user.passwordHash)))) {
+  if (!user || !(await comparePassword(input.password, String(user.password_hash)))) {
     throw new AppError("Incorrect email or password.", 401);
   }
 
   return {
-    token: signToken({ userId: user._id.toString(), email: String(user.email) }),
-    user
+    token: signToken({ userId: user.id, email: user.email }),
+    user: {
+      id: user.id,
+      email: user.email,
+      displayName: user.display_name,
+      inviteCode: user.invite_code,
+      partnerId: user.partner_id
+    }
   };
 }

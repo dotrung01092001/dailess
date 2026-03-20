@@ -5,11 +5,12 @@ dotenv.config();
 
 const envSchema = z.object({
   PORT: z.coerce.number().default(4000),
-  MONGODB_URI: z.string().min(1),
   JWT_SECRET: z.string().min(12),
   CLIENT_URL: z.string().url(),
-  UPLOAD_DIR: z.string().default("uploads"),
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development")
+  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  SUPABASE_STORAGE_BUCKET: z.string().default("moments")
 });
 
 export const env = envSchema.parse(process.env);

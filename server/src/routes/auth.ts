@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { User } from "../models/User.js";
 import { requireAuth } from "../middleware/auth.js";
+import { getHydratedUser } from "../lib/store.js";
 import { loginUser, registerUser } from "../services/user-service.js";
 import { loginSchema, registerSchema } from "../validation/auth.js";
 
@@ -28,10 +28,9 @@ authRouter.post("/login", async (req, res, next) => {
 
 authRouter.get("/me", requireAuth, async (req, res, next) => {
   try {
-    const user = await User.findById(req.user!.userId).populate("partnerId");
+    const user = await getHydratedUser(req.user!.userId);
     res.json({ user });
   } catch (error) {
     next(error);
   }
 });
-

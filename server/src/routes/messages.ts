@@ -1,9 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import { getConversationKey } from "../lib/conversation.js";
-import { Message } from "../models/Message.js";
-import { User } from "../models/User.js";
-import { AppError } from "../utils/errors.js";
+import { createMessageRow, listMessages, requirePartneredUser } from "../lib/store.js";
 import { messageSchema } from "../validation/message.js";
 
 export const messageRouter = Router();
@@ -12,14 +10,9 @@ messageRouter.use(requireAuth);
 
 messageRouter.get("/", async (req, res, next) => {
   try {
-    const user = await User.findById(req.user!.userId);
-
-    if (!user?.partnerId) {
-      throw new AppError("Connect with your partner first.", 400);
-    }
-
-    const conversationKey = getConversationKey(user.id, user.partnerId.toString());
-    const messages = await Message.find({ conversationKey }).sort({ createdAt: 1 }).limit(200);
+    const user = await requirePartneredUser(req.user!.userId);
+    const conversationKey = getConversationKey(user.id, user.partner_id!);
+    const messages = await listMessages(conversationKey);
     res.json({ messages });
   } catch (error) {
     next(error);
@@ -28,17 +21,12 @@ messageRouter.get("/", async (req, res, next) => {
 
 messageRouter.post("/", async (req, res, next) => {
   try {
-    const user = await User.findById(req.user!.userId);
-
-    if (!user?.partnerId) {
-      throw new AppError("Connect with your partner first.", 400);
-    }
-
+    const user = await requirePartneredUser(req.user!.userId);
     const { body } = messageSchema.parse(req.body);
-    const receiverId = user.partnerId.toString();
-    const message = await Message.create({
+    const receiverId = user.partner_id!;
+    const message = await createMessageRow({
       conversationKey: getConversationKey(user.id, receiverId),
-      senderId: user._id,
+      senderId: user.id,
       receiverId,
       body,
       status: "sent"
@@ -49,4 +37,3 @@ messageRouter.post("/", async (req, res, next) => {
     next(error);
   }
 });
-

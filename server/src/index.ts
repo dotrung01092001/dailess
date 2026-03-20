@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
-import path from "node:path";
 import http from "node:http";
 import { env } from "./config/env.js";
 import { connectDatabase } from "./lib/db.js";
@@ -24,7 +23,6 @@ app.use(
 );
 app.use(morgan("dev"));
 app.use(express.json({ limit: "2mb" }));
-app.use("/uploads", express.static(path.resolve(env.UPLOAD_DIR)));
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
