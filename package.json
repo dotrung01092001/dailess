@@ -1,0 +1,19 @@
+{
+  "name": "dailess",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "web",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm --workspace server run dev\" \"npm --workspace web run dev\"",
+    "build": "npm --workspace server run build && npm --workspace web run build",
+    "lint": "npm --workspace web run lint",
+    "start": "concurrently \"npm --workspace server run start\" \"npm --workspace web run start\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
+

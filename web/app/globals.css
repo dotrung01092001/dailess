@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fff8f6;
+  --panel: rgba(255, 248, 246, 0.84);
+  --panel-strong: #fffdfc;
+  --foreground: #4f2e2a;
+  --muted: #8e6f6a;
+  --pink: #f4b8c8;
+  --pink-strong: #e68fa9;
+  --brown: #8b5e57;
+  --brown-deep: #5e3f3b;
+  --ocean: #84bfd3;
+  --ocean-deep: #4c91aa;
+  --border: rgba(139, 94, 87, 0.12);
+  --shadow: 0 20px 60px rgba(139, 94, 87, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background:
+    radial-gradient(circle at top, rgba(244, 184, 200, 0.42), transparent 34%),
+    radial-gradient(circle at bottom, rgba(132, 191, 211, 0.28), transparent 26%),
+    var(--background);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--foreground);
+  background: transparent;
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.glass-panel {
+  background: var(--panel);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+}
+
+.romantic-gradient {
+  background:
+    linear-gradient(135deg, rgba(244, 184, 200, 0.92), rgba(255, 255, 255, 0.95) 48%, rgba(132, 191, 211, 0.84));
+}
+
+.story-gradient {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(79, 46, 42, 0.3)),
+    linear-gradient(135deg, rgba(230, 143, 169, 0.92), rgba(132, 191, 211, 0.72));
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+

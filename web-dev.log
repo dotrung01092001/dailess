@@ -1,0 +1,34 @@
+
+> dailess-web@1.0.0 dev
+> next dev
+
+   ▲ Next.js 15.5.13
+   - Local:        http://localhost:3000
+   - Network:      http://172.18.0.1:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 7.8s
+ ○ Compiling / ...
+ ✓ Compiled / in 1494ms (1538 modules)
+ GET / 200 in 2030ms
+ GET / 200 in 94ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 10.8s (1557 modules)
+ GET /sw.js 404 in 11274ms
+ GET / 200 in 532ms
+ GET / 200 in 366ms
+ GET /sw.js 404 in 46ms
+ GET / 200 in 58ms
+ GET /sw.js 404 in 46ms
+ ✓ Compiled in 1209ms (1557 modules)
+ GET / 200 in 224ms
+ ✓ Compiled in 2s (1554 modules)
+ GET / 200 in 217ms
+ GET / 200 in 451ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 674ms (1545 modules)
+ GET /sw.js 404 in 1065ms
+ GET / 200 in 509ms
+ GET /sw.js 404 in 53ms
+^C^C

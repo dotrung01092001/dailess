@@ -1,0 +1,179 @@
+
+> dailess-server@1.0.0 dev
+> tsx watch src/index.ts
+
+Primary MongoDB connection failed. Falling back to in-memory MongoDB for local development.
+MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017
+    at _handleConnectionErrors (D:\Documents\Dailess\node_modules\mongoose\lib\connection.js:1169:11)
+    at NativeConnection.openUri (D:\Documents\Dailess\node_modules\mongoose\lib\connection.js:1100:11)
+    at async connectDatabase (D:\Documents\Dailess\server\src\lib\db.ts:9:5)
+    at async start (D:\Documents\Dailess\server\src\index.ts:40:3) {
+  errorLabelSet: Set(0) {},
+  reason: TopologyDescription {
+    type: 'Unknown',
+    servers: Map(1) { '127.0.0.1:27017' => [ServerDescription] },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: null,
+    maxElectionId: null,
+    maxSetVersion: null,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  },
+  code: undefined,
+  cause: TopologyDescription {
+    type: 'Unknown',
+    servers: Map(1) { '127.0.0.1:27017' => [ServerDescription] },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: null,
+    maxElectionId: null,
+    maxSetVersion: null,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  }
+}
+Downloading MongoDB "7.0.14": 0% (0mb / 456.2mb)[0G
+Downloading MongoDB "7.0.14": 0.7% (3.1mb / 456.2mb)[0G
+Downloading MongoDB "7.0.14": 1.5% (6.8mb / 456.2mb)[0G
+Downloading MongoDB "7.0.14": 0% (0mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 1.4% (6.4mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 3.3% (14.9mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 5.1% (23.1mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 7.3% (32.6mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 10% (45mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 11.4% (51.1mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 13.1% (58.7mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 15% (67.4mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 16.9% (76mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 19.1% (85.8mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 20% (89.6mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 21.5% (96.7mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 22.3% (100.2mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 23.8% (106.6mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 25.1% (112.6mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 26.6% (119.4mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 28.9% (129.7mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 30.9% (138.7mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 33.4% (149.7mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 35.7% (160.5mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 38.5% (173mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 40.7% (182.6mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 44.1% (197.9mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 47.5% (213.2mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 48.3% (216.8mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 49.9% (223.8mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 51.7% (232.2mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 53.2% (238.8mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 53.9% (241.9mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 54.9% (246.6mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 56.1% (252mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 57.1% (256.2mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 57.7% (259mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 58.8% (264.1mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 60.2% (270.3mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 61.9% (278mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 63.9% (286.9mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 65.9% (296.1mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 67.8% (304.5mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 70.6% (317.1mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 73.6% (330.6mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 75.3% (338.1mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 78% (350.1mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 81% (363.8mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 84.7% (380.3mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 88.4% (397mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 92.4% (415mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 95.9% (430.6mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 99.7% (447.6mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 100% (448.9mb / 448.9mb)[0G
+Downloading MongoDB "7.0.14": 100% (0mb / 0mb)[0G
+Connected to in-memory MongoDB.
+Dailess server is listening on 4000
+[0mGET /api/health [32m200[0m 2.197 ms - 11[0m
+[0mPOST /api/auth/register [32m201[0m 319.686 ms - 460[0m
+[0mGET /api/auth/me [32m200[0m 14.851 ms - 230[0m
+[0mPOST /api/auth/register [32m201[0m 264.950 ms - 463[0m
+[0mGET /api/auth/me [32m200[0m 3.650 ms - 231[0m
+[0mPOST /api/partner/connect [32m200[0m 9.967 ms - 507[0m
+[0mGET /api/auth/me [32m200[0m 5.845 ms - 470[0m
+[0mGET /api/messages [32m200[0m 8.651 ms - 15[0m
+[0mGET /api/moments [32m200[0m 7.134 ms - 14[0m
+[0mPOST /api/auth/login [33m401[0m 263.603 ms - 42[0m
+[0mPOST /api/auth/login [33m401[0m 266.308 ms - 42[0m
+[0mPOST /api/auth/login [33m401[0m 259.807 ms - 42[0m
+[0mPOST /api/auth/register [32m201[0m 280.026 ms - 462[0m
+[0mGET /api/auth/me [32m200[0m 2.964 ms - 231[0m
+[0mPOST /api/auth/login [32m200[0m 258.922 ms - 485[0m
+[0mGET /api/auth/me [32m200[0m 7.319 ms - 470[0m
+[0mGET /api/messages [32m200[0m 14.317 ms - 339[0m
+[0mGET /api/moments [32m200[0m 19.547 ms - 14[0m
+[0mGET /api/auth/me [32m200[0m 5.334 ms - 470[0m
+[0mGET /api/messages [32m200[0m 11.553 ms - 339[0m
+[0mGET /api/moments [32m200[0m 10.739 ms - 14[0m
+[0mGET /api/auth/me [32m200[0m 3.370 ms - 470[0m
+[0mGET /api/messages [32m200[0m 7.384 ms - 339[0m
+[0mGET /api/moments [32m200[0m 6.744 ms - 14[0m
+23:27:01 [tsx] change in ./src\services\partner-service.ts Restarting...
+cPrimary MongoDB connection failed. Falling back to in-memory MongoDB for local development.
+MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017
+    at _handleConnectionErrors (D:\Documents\Dailess\node_modules\mongoose\lib\connection.js:1169:11)
+    at NativeConnection.openUri (D:\Documents\Dailess\node_modules\mongoose\lib\connection.js:1100:11)
+    at async connectDatabase (D:\Documents\Dailess\server\src\lib\db.ts:9:5)
+    at async start (D:\Documents\Dailess\server\src\index.ts:40:3) {
+  errorLabelSet: Set(0) {},
+  reason: TopologyDescription {
+    type: 'Unknown',
+    servers: Map(1) { '127.0.0.1:27017' => [ServerDescription] },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: null,
+    maxElectionId: null,
+    maxSetVersion: null,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  },
+  code: undefined,
+  cause: TopologyDescription {
+    type: 'Unknown',
+    servers: Map(1) { '127.0.0.1:27017' => [ServerDescription] },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: null,
+    maxElectionId: null,
+    maxSetVersion: null,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  }
+}
+Connected to in-memory MongoDB.
+Dailess server is listening on 4000
+[0mDELETE /api/partner/disconnect [33m404[0m 6.337 ms - 29[0m
+[0mDELETE /api/partner/disconnect [33m404[0m 3.019 ms - 29[0m
+[0mGET /api/auth/me [32m200[0m 6.393 ms - 13[0m
+[0mPOST /api/auth/login [33m401[0m 30.078 ms - 42[0m
+[0mPOST /api/auth/login [33m401[0m 2.579 ms - 42[0m
+[0mPOST /api/auth/login [33m401[0m 3.085 ms - 42[0m
+[0mPOST /api/auth/register [32m201[0m 455.450 ms - 460[0m
+[0mGET /api/auth/me [32m200[0m 11.491 ms - 230[0m
+[0mPOST /api/auth/register [32m201[0m 489.545 ms - 463[0m
+[0mGET /api/auth/me [32m200[0m 4.139 ms - 231[0m
+[0mPOST /api/partner/connect [32m200[0m 68.730 ms - 507[0m
+[0mGET /api/auth/me [32m200[0m 51.088 ms - 470[0m
+[0mGET /api/messages [32m200[0m 17.664 ms - 15[0m
+[0mGET /api/moments [32m200[0m 14.532 ms - 14[0m
+[0mPOST /api/auth/login [32m200[0m 553.573 ms - 482[0m
+[0mGET /api/auth/me [32m200[0m 8.476 ms - 470[0m
+[0mGET /api/messages [32m200[0m 38.808 ms - 337[0m
+[0mGET /api/moments [32m200[0m 31.895 ms - 14[0m
+[0mPOST /api/moments [32m201[0m 14.762 ms - 383[0m
+[0mGET /uploads/1774029339332-EpL2dS-z.jpg [32m200[0m 6.689 ms - 38871[0m
+^C
