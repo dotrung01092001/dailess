@@ -3,6 +3,10 @@ import { z } from "zod";
 
 dotenv.config();
 
+const cleanedEnv = Object.fromEntries(
+  Object.entries(process.env).map(([key, value]) => [key, typeof value === "string" ? value.trim() : value])
+);
+
 const envSchema = z.object({
   PORT: z.coerce.number().default(4000),
   JWT_SECRET: z.string().min(12),
@@ -13,4 +17,4 @@ const envSchema = z.object({
   SUPABASE_STORAGE_BUCKET: z.string().default("moments")
 });
 
-export const env = envSchema.parse(process.env);
+export const env = envSchema.parse(cleanedEnv);
