@@ -27,7 +27,7 @@ export interface Moment {
   receiverId: string;
   imageUrl: string;
   filter: string;
+  caption?: string | null;
   createdAt: string;
   expiresAt: string;
 }
-

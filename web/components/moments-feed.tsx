@@ -11,6 +11,14 @@ type Props = {
   currentUser: User;
 };
 
+function getMomentFilterClass(filter: string) {
+  if (filter === "warm") return "sepia-[.22] saturate-125";
+  if (filter === "ocean") return "hue-rotate-[165deg] saturate-110";
+  if (filter === "rose") return "hue-rotate-[330deg] saturate-125 brightness-105";
+  if (filter === "mono") return "grayscale contrast-110";
+  return "brightness-105";
+}
+
 export function MomentsFeed({ moments, currentUser }: Props) {
   return (
     <section className="glass-panel rounded-[32px] border border-white/70 p-4">
@@ -41,13 +49,7 @@ export function MomentsFeed({ moments, currentUser }: Props) {
                     alt="Daily moment"
                     fill
                     unoptimized
-                    className={`object-cover ${
-                      moment.filter === "warm"
-                        ? "sepia-[.22] saturate-125"
-                        : moment.filter === "ocean"
-                          ? "hue-rotate-[165deg] saturate-110"
-                          : "brightness-105"
-                    }`}
+                    className={`object-cover ${getMomentFilterClass(moment.filter)}`}
                   />
                 </div>
                 <div className="relative flex h-full flex-col justify-between rounded-[22px] bg-black/10 p-3">
@@ -56,7 +58,9 @@ export function MomentsFeed({ moments, currentUser }: Props) {
                     <span>{new Date(moment.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                   </div>
                   <div className="rounded-2xl bg-white/16 p-3 backdrop-blur-sm">
-                    <p className="text-sm">Fades in 24 hours. A tiny memory, still warm.</p>
+                    <p className="text-sm leading-6">
+                      {moment.caption?.trim() ? moment.caption : "Fades in 24 hours. A tiny memory, still warm."}
+                    </p>
                   </div>
                 </div>
               </motion.article>

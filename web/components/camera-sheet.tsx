@@ -1,32 +1,49 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { Camera, CameraOff, RefreshCcw, Sparkles, X } from "lucide-react";
+import { ArrowLeft, Camera, CameraOff, LoaderCircle, RotateCcw, Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
   open: boolean;
   loading: boolean;
   onClose: () => void;
-  onCapture: (file: File, filter: string) => Promise<void>;
+  onCapture: (file: File, filter: string, caption: string) => Promise<void>;
 };
 
 const filters = [
   { id: "soft", label: "Soft" },
   { id: "warm", label: "Warm" },
-  { id: "ocean", label: "Ocean" }
+  { id: "ocean", label: "Ocean" },
+  { id: "rose", label: "Rose" },
+  { id: "mono", label: "Mono" }
 ] as const;
+
+function getFilterClass(filter: (typeof filters)[number]["id"]) {
+  if (filter === "warm") return "sepia-[.2] saturate-125";
+  if (filter === "ocean") return "hue-rotate-[165deg] saturate-115";
+  if (filter === "rose") return "hue-rotate-[330deg] saturate-125 brightness-105";
+  if (filter === "mono") return "grayscale contrast-110";
+  return "brightness-105";
+}
 
 export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [error, setError] = useState("");
+  const [caption, setCaption] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<(typeof filters)[number]["id"]>("soft");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [capturedFile, setCapturedFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setError("");
+    setCaption("");
+    setPreviewUrl(null);
+    setCapturedFile(null);
 
     const start = async () => {
       try {
@@ -51,10 +68,16 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
+      setPreviewUrl((current) => {
+        if (current) URL.revokeObjectURL(current);
+        return null;
+      });
     };
   }, [open]);
 
   if (!open) return null;
+
+  const hasPreview = Boolean(previewUrl && capturedFile);
 
   return (
     <div className="fixed inset-0 z-50 bg-[rgba(47,28,26,0.45)] px-4 pb-6 pt-10 backdrop-blur-sm">
@@ -63,14 +86,33 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
         animate={{ opacity: 1, y: 0 }}
         className="mx-auto flex h-full w-full max-w-md flex-col rounded-[34px] bg-[var(--panel-strong)] p-4 shadow-2xl"
       >
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">Share instantly</p>
-            <h2 className="mt-2 text-xl font-semibold text-[var(--brown-deep)]">Capture a tiny memory</h2>
-          </div>
-          <button type="button" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90" onClick={onClose}>
-            <X className="h-5 w-5 text-[var(--brown-deep)]" />
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90"
+            onClick={() => {
+              if (hasPreview) {
+                setPreviewUrl((current) => {
+                  if (current) URL.revokeObjectURL(current);
+                  return null;
+                });
+                setCapturedFile(null);
+                return;
+              }
+              onClose();
+            }}
+          >
+            <ArrowLeft className="h-5 w-5 text-[var(--brown-deep)]" />
           </button>
+          <div className="flex-1">
+            <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">Share instantly</p>
+            <h2 className="mt-2 text-xl font-semibold text-[var(--brown-deep)]">
+              {hasPreview ? "Choose this moment?" : "Capture a tiny memory"}
+            </h2>
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90">
+            <Sparkles className="h-5 w-5 text-[var(--ocean-deep)]" />
+          </div>
         </div>
 
         <div className="relative flex-1 overflow-hidden rounded-[30px] bg-[var(--brown-deep)]">
@@ -79,24 +121,29 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
               <CameraOff className="h-8 w-8" />
               <p className="mt-4 text-base">{error}</p>
             </div>
+          ) : hasPreview ? (
+            <div className="relative h-full w-full">
+              <Image src={previewUrl!} alt="Captured moment preview" fill unoptimized className={`object-cover ${getFilterClass(selectedFilter)}`} />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/30 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/50 to-transparent" />
+            </div>
           ) : (
             <>
-              <video
-                ref={videoRef}
-                className={`h-full w-full ${
-                  selectedFilter === "warm"
-                    ? "sepia-[.2] saturate-125"
-                    : selectedFilter === "ocean"
-                      ? "hue-rotate-[165deg] saturate-115"
-                      : "brightness-105"
-                }`}
-                playsInline
-                muted
-              />
+              <video ref={videoRef} className={`h-full w-full ${getFilterClass(selectedFilter)}`} playsInline muted />
               <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/30 to-transparent" />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/50 to-transparent" />
             </>
           )}
+
+          {loading ? (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-[rgba(47,28,26,0.52)] text-center text-white backdrop-blur-sm">
+              <LoaderCircle className="h-8 w-8 animate-spin" />
+              <div>
+                <p className="text-base font-medium">Sending your moment...</p>
+                <p className="mt-1 text-sm text-white/80">Compressing the photo and wrapping it softly.</p>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
@@ -114,45 +161,91 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
           ))}
         </div>
 
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/90">
-            <RefreshCcw className="h-5 w-5 text-[var(--brown-deep)]" />
-          </div>
+        <label className="mt-4 block">
+          <span className="mb-2 block text-sm text-[var(--muted)]">A little note for this moment</span>
+          <textarea
+            rows={2}
+            maxLength={140}
+            className="w-full rounded-[24px] border border-[var(--border)] bg-white/90 px-4 py-3 outline-none"
+            placeholder="A tiny thought, a sweet joke, or why this photo matters..."
+            value={caption}
+            onChange={(event) => setCaption(event.target.value)}
+          />
+        </label>
 
-          <button
-            type="button"
-            disabled={loading || !!error}
-            className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-[var(--pink-strong)] text-white shadow-xl shadow-rose-200/40 disabled:opacity-60"
-            onClick={async () => {
-              if (!videoRef.current || !canvasRef.current) return;
-              const video = videoRef.current;
-              const canvas = canvasRef.current;
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-              const ctx = canvas.getContext("2d");
-              if (!ctx) return;
+        <div className="mt-4 flex items-center justify-center gap-3">
+          {hasPreview ? (
+            <>
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-full bg-white px-4 py-3 text-sm text-[var(--brown-deep)]"
+                onClick={() => {
+                  setPreviewUrl((current) => {
+                    if (current) URL.revokeObjectURL(current);
+                    return null;
+                  });
+                  setCapturedFile(null);
+                }}
+                disabled={loading}
+              >
+                <RotateCcw className="h-4 w-4" />
+                Retake
+              </button>
+              <button
+                type="button"
+                disabled={loading || !capturedFile}
+                className="flex items-center gap-2 rounded-full bg-[var(--brown-deep)] px-5 py-3 text-sm text-white disabled:opacity-60"
+                onClick={async () => {
+                  if (!capturedFile) return;
+                  await onCapture(capturedFile, selectedFilter, caption.trim());
+                }}
+              >
+                {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                Post this moment
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              disabled={loading || !!error}
+              className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-[var(--pink-strong)] text-white shadow-xl shadow-rose-200/40 disabled:opacity-60"
+              onClick={async () => {
+                if (!videoRef.current || !canvasRef.current) return;
+                const video = videoRef.current;
+                const canvas = canvasRef.current;
+                const maxSize = 1440;
+                const ratio = Math.min(maxSize / video.videoWidth, maxSize / video.videoHeight, 1);
+                canvas.width = Math.round(video.videoWidth * ratio);
+                canvas.height = Math.round(video.videoHeight * ratio);
+                const ctx = canvas.getContext("2d");
+                if (!ctx) return;
 
-              if (selectedFilter === "warm") {
-                ctx.filter = "saturate(1.1) sepia(0.18)";
-              } else if (selectedFilter === "ocean") {
-                ctx.filter = "hue-rotate(165deg) saturate(1.12)";
-              } else {
-                ctx.filter = "brightness(1.05)";
-              }
+                if (selectedFilter === "warm") {
+                  ctx.filter = "saturate(1.1) sepia(0.18)";
+                } else if (selectedFilter === "ocean") {
+                  ctx.filter = "hue-rotate(165deg) saturate(1.12)";
+                } else if (selectedFilter === "rose") {
+                  ctx.filter = "hue-rotate(330deg) saturate(1.12) brightness(1.04)";
+                } else if (selectedFilter === "mono") {
+                  ctx.filter = "grayscale(1) contrast(1.1)";
+                } else {
+                  ctx.filter = "brightness(1.05)";
+                }
 
-              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
-              if (!blob) return;
-              const file = new File([blob], `moment-${Date.now()}.jpg`, { type: "image/jpeg" });
-              await onCapture(file, selectedFilter);
-            }}
-          >
-            <Camera className="h-7 w-7" />
-          </button>
-
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/90">
-            <Sparkles className="h-5 w-5 text-[var(--ocean-deep)]" />
-          </div>
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.82));
+                if (!blob) return;
+                const file = new File([blob], `moment-${Date.now()}.jpg`, { type: "image/jpeg" });
+                setCapturedFile(file);
+                setPreviewUrl((current) => {
+                  if (current) URL.revokeObjectURL(current);
+                  return URL.createObjectURL(file);
+                });
+              }}
+            >
+              {loading ? <LoaderCircle className="h-7 w-7 animate-spin" /> : <Camera className="h-7 w-7" />}
+            </button>
+          )}
         </div>
 
         <canvas ref={canvasRef} className="hidden" />

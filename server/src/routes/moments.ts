@@ -37,6 +37,7 @@ momentRouter.post("/", upload.single("photo"), async (req, res, next) => {
       receiverId,
       imagePath,
       filter: typeof req.body.filter === "string" ? req.body.filter : "soft",
+      caption: typeof req.body.caption === "string" ? req.body.caption.trim().slice(0, 140) : null,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
     });
 

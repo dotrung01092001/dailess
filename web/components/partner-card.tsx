@@ -27,12 +27,12 @@ export function PartnerCard({ user, onConnect, onDisconnect, loading }: Props) {
         </p>
         <button
           type="button"
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600 disabled:opacity-60"
+          className="mt-4 inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-600 disabled:opacity-60"
           onClick={() => void onDisconnect()}
           disabled={loading}
         >
-          <HeartOff className="h-4 w-4" />
-          {loading ? "Disconnecting..." : "Remove this connection"}
+          <HeartOff className="h-3.5 w-3.5" />
+          {loading ? "Disconnecting..." : "Remove connection"}
         </button>
       </section>
     );

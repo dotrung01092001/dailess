@@ -40,6 +40,7 @@ interface MomentRow {
   receiver_id: string;
   image_path: string;
   filter: string;
+  caption: string | null;
   expires_at: string;
   created_at: string;
 }
@@ -85,6 +86,7 @@ async function normalizeMoment(row: MomentRow) {
     receiverId: row.receiver_id,
     imageUrl: await signedMomentUrl(row.image_path),
     filter: row.filter,
+    caption: row.caption,
     createdAt: row.created_at,
     expiresAt: row.expires_at
   };
@@ -254,6 +256,7 @@ export async function createMomentRow(input: {
   receiverId: string;
   imagePath: string;
   filter: string;
+  caption?: string | null;
   expiresAt: string;
 }) {
   const { data, error } = await supabase
@@ -264,6 +267,7 @@ export async function createMomentRow(input: {
       receiver_id: input.receiverId,
       image_path: input.imagePath,
       filter: input.filter,
+      caption: input.caption ?? null,
       expires_at: input.expiresAt
     })
     .select("*")

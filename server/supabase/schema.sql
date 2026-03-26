@@ -29,9 +29,12 @@ create table if not exists public.moments (
   receiver_id uuid not null references public.users(id) on delete cascade,
   image_path text not null,
   filter text not null default 'soft',
+  caption text null,
   expires_at timestamptz not null,
   created_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.moments add column if not exists caption text null;
 
 create index if not exists users_invite_code_idx on public.users(invite_code);
 create index if not exists users_partner_id_idx on public.users(partner_id);

@@ -66,9 +66,26 @@ textarea {
   display: none;
 }
 
+.soft-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 94, 87, 0.35) transparent;
+}
+
+.soft-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.soft-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.soft-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(139, 94, 87, 0.3);
+}
+
 video {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-

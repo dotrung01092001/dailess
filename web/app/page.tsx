@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Camera, Heart, LogOut, MessageCircleHeart, RefreshCcw } from "lucide-react";
+import { Camera, Heart, LoaderCircle, LogOut, MessageCircleHeart } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { AuthCard } from "../components/auth-card";
@@ -18,10 +18,12 @@ type Tab = "moments" | "chat";
 
 function usePersistentToken() {
   const [token, setToken] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const saved = window.localStorage.getItem("dailess-token");
     if (saved) setToken(saved);
+    setReady(true);
   }, []);
 
   const save = (value: string | null) => {
@@ -33,11 +35,28 @@ function usePersistentToken() {
     }
   };
 
-  return { token, save };
+  return { token, save, ready };
+}
+
+function AppLoadingScreen() {
+  return (
+    <AppShell>
+      <section className="glass-panel flex min-h-[70vh] flex-col items-center justify-center rounded-[36px] border border-white/70 px-8 text-center">
+        <div className="romantic-gradient mb-6 flex h-20 w-20 items-center justify-center rounded-full shadow-lg shadow-rose-200/40">
+          <Heart className="h-8 w-8 fill-white text-white" />
+        </div>
+        <LoaderCircle className="h-7 w-7 animate-spin text-[var(--ocean-deep)]" />
+        <h2 className="mt-5 text-2xl font-semibold text-[var(--brown-deep)]">Opening your shared space</h2>
+        <p className="mt-3 max-w-xs text-sm leading-7 text-[var(--muted)]">
+          Holding your memories, your messages, and the tiny pieces of today for just the two of you.
+        </p>
+      </section>
+    </AppShell>
+  );
 }
 
 export default function HomePage() {
-  const { token, save } = usePersistentToken();
+  const { token, save, ready } = usePersistentToken();
   const socketRef = useRef<Socket | null>(null);
   const typingTimeoutRef = useRef<number | null>(null);
   const [authMode, setAuthMode] = useState<AuthMode>("register");
@@ -46,7 +65,9 @@ export default function HomePage() {
   const [moments, setMoments] = useState<Moment[]>([]);
   const [draft, setDraft] = useState("");
   const [tab, setTab] = useState<Tab>("moments");
-  const [loading, setLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [partnerLoading, setPartnerLoading] = useState(false);
+  const [momentUploading, setMomentUploading] = useState(false);
   const [screenLoading, setScreenLoading] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
@@ -89,10 +110,10 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    if (token) {
+    if (ready && token) {
       void hydrateSession(token);
     }
-  }, [token]);
+  }, [ready, token]);
 
   useEffect(() => {
     if (!token || !user) return;
@@ -130,7 +151,7 @@ export default function HomePage() {
   }, [token, user]);
 
   const submitAuth = async (payload: { email: string; password: string; displayName?: string }) => {
-    setLoading(true);
+    setAuthLoading(true);
     setError("");
 
     try {
@@ -147,13 +168,13 @@ export default function HomePage() {
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to continue.");
     } finally {
-      setLoading(false);
+      setAuthLoading(false);
     }
   };
 
   const connectPartner = async (inviteCode: string) => {
     if (!token) return;
-    setLoading(true);
+    setPartnerLoading(true);
     setError("");
 
     try {
@@ -162,13 +183,13 @@ export default function HomePage() {
     } catch (partnerError) {
       setError(partnerError instanceof Error ? partnerError.message : "Could not connect accounts.");
     } finally {
-      setLoading(false);
+      setPartnerLoading(false);
     }
   };
 
   const disconnectPartner = async () => {
     if (!token) return;
-    setLoading(true);
+    setPartnerLoading(true);
     setError("");
 
     try {
@@ -181,7 +202,7 @@ export default function HomePage() {
     } catch (disconnectError) {
       setError(disconnectError instanceof Error ? disconnectError.message : "Could not remove the connection.");
     } finally {
-      setLoading(false);
+      setPartnerLoading(false);
     }
   };
 
@@ -216,15 +237,18 @@ export default function HomePage() {
     }, 900);
   };
 
-  const shareMoment = async (file: File, filter: string) => {
+  const shareMoment = async (file: File, filter: string, caption: string) => {
     if (!token) return;
-    setLoading(true);
+    setMomentUploading(true);
     setError("");
 
     try {
       const formData = new FormData();
       formData.append("photo", file);
       formData.append("filter", filter);
+      if (caption.trim()) {
+        formData.append("caption", caption.trim());
+      }
       const { moment } = await api.createMoment(formData, token);
       setMoments((state) => [moment, ...state.filter((item) => item._id !== moment._id)]);
       socketRef.current?.emit("moment:new", { momentId: moment._id });
@@ -233,9 +257,13 @@ export default function HomePage() {
     } catch (momentError) {
       setError(momentError instanceof Error ? momentError.message : "Moment could not be sent.");
     } finally {
-      setLoading(false);
+      setMomentUploading(false);
     }
   };
+
+  if (!ready || (token && (screenLoading || !user))) {
+    return <AppLoadingScreen />;
+  }
 
   if (!token || !user) {
     return (
@@ -245,22 +273,13 @@ export default function HomePage() {
             A quiet place for messages, fleeting photos, and the small pieces of a day that matter most.
           </p>
         </section>
-        <AuthCard mode={authMode} onModeChange={setAuthMode} onSubmit={submitAuth} loading={loading} error={error} />
+        <AuthCard mode={authMode} onModeChange={setAuthMode} onSubmit={submitAuth} loading={authLoading} error={error} />
       </AppShell>
     );
   }
 
   return (
     <AppShell>
-      <AnimatePresence initial={false}>
-        {screenLoading ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-panel rounded-[32px] p-8 text-center">
-            <RefreshCcw className="mx-auto h-6 w-6 animate-spin text-[var(--ocean-deep)]" />
-            <p className="mt-4 text-sm text-[var(--muted)]">Warming up your shared space...</p>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
       <section className="mb-4 flex items-center justify-between rounded-[28px] bg-white/70 px-4 py-3 shadow-sm">
         <div>
           <p className="text-xs uppercase tracking-[0.26em] text-[var(--muted)]">Signed in as</p>
@@ -281,7 +300,7 @@ export default function HomePage() {
       </section>
 
       <div className="space-y-4">
-        <PartnerCard user={user} onConnect={connectPartner} onDisconnect={disconnectPartner} loading={loading} />
+        <PartnerCard user={user} onConnect={connectPartner} onDisconnect={disconnectPartner} loading={partnerLoading} />
 
         {partner ? (
           <>
@@ -338,7 +357,7 @@ export default function HomePage() {
         ) : null}
       </div>
 
-      <CameraSheet open={cameraOpen} onClose={() => setCameraOpen(false)} onCapture={shareMoment} loading={loading} />
+      <CameraSheet open={cameraOpen} onClose={() => setCameraOpen(false)} onCapture={shareMoment} loading={momentUploading} />
     </AppShell>
   );
 }
