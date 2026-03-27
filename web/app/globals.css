@@ -67,21 +67,23 @@ textarea {
 }
 
 .soft-scrollbar {
-  scrollbar-width: thin;
+  scrollbar-width: auto;
   scrollbar-color: rgba(139, 94, 87, 0.35) transparent;
 }
 
 .soft-scrollbar::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 .soft-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
 }
 
 .soft-scrollbar::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(139, 94, 87, 0.3);
+  background: rgba(139, 94, 87, 0.42);
+  border: 2px solid rgba(255, 255, 255, 0.35);
 }
 
 video {

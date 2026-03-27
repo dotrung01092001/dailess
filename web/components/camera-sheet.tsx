@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowLeft, Camera, CameraOff, LoaderCircle, RotateCcw, Send, Sparkles } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Camera, CameraOff, LoaderCircle, RefreshCcw, RotateCcw, Send, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cameraFilters, type CameraFilterId, getCameraFilterStyle } from "../lib/camera-filters";
 
 type Props = {
@@ -22,6 +22,33 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
   const [selectedFilter, setSelectedFilter] = useState<CameraFilterId>("soft");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
+  const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("environment");
+  const hasPreview = Boolean(previewUrl && capturedFile);
+
+  const stopStream = useCallback(() => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  }, []);
+
+  const startCamera = useCallback(async () => {
+    try {
+      stopStream();
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: cameraFacing }
+        },
+        audio: false
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      setError("");
+    } catch {
+      setError("Camera access is needed to share a live moment.");
+    }
+  }, [cameraFacing, stopStream]);
 
   useEffect(() => {
     if (!open) return;
@@ -29,40 +56,23 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
     setCaption("");
     setPreviewUrl(null);
     setCapturedFile(null);
-
-    const start = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: "environment" }
-          },
-          audio: false
-        });
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-        }
-      } catch {
-        setError("Camera access is needed to share a live moment.");
-      }
-    };
-
-    void start();
+    setCameraFacing("environment");
 
     return () => {
-      streamRef.current?.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
+      stopStream();
       setPreviewUrl((current) => {
         if (current) URL.revokeObjectURL(current);
         return null;
       });
     };
-  }, [open]);
+  }, [open, stopStream]);
+
+  useEffect(() => {
+    if (!open || hasPreview) return;
+    void startCamera();
+  }, [open, hasPreview, startCamera]);
 
   if (!open) return null;
-
-  const hasPreview = Boolean(previewUrl && capturedFile);
 
   return (
     <div className="fixed inset-0 z-50 bg-[rgba(47,28,26,0.45)] px-4 pb-6 pt-10 backdrop-blur-sm">
@@ -95,8 +105,21 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
               {hasPreview ? "Choose this moment?" : "Capture a tiny memory"}
             </h2>
           </div>
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90">
-            <Sparkles className="h-5 w-5 text-[var(--ocean-deep)]" />
+          <div className="flex items-center gap-2">
+            {!hasPreview ? (
+              <button
+                type="button"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 disabled:opacity-50"
+                onClick={() => setCameraFacing((current) => (current === "environment" ? "user" : "environment"))}
+                disabled={loading || !!error}
+                aria-label="Switch camera"
+              >
+                <RefreshCcw className="h-5 w-5 text-[var(--brown-deep)]" />
+              </button>
+            ) : null}
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90">
+              <Sparkles className="h-5 w-5 text-[var(--ocean-deep)]" />
+            </div>
           </div>
         </div>
 
@@ -124,7 +147,10 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
               <video
                 ref={videoRef}
                 className="h-full w-full object-cover"
-                style={{ filter: getCameraFilterStyle(selectedFilter) }}
+                style={{
+                  filter: getCameraFilterStyle(selectedFilter),
+                  transform: cameraFacing === "user" ? "scaleX(-1)" : undefined
+                }}
                 playsInline
                 muted
               />

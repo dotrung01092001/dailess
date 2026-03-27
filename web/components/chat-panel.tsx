@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, CornerDownRight, SendHorizonal } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Message, User } from "../lib/types";
 
 type Props = {
@@ -34,19 +34,38 @@ export function ChatPanel({
   onSend
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
 
   const latestMessage = useMemo(() => messages[messages.length - 1] ?? null, [messages]);
 
-  const scrollToLatest = () => {
-    containerRef.current?.scrollTo({
-      top: containerRef.current.scrollHeight,
-      behavior: "smooth"
+  const isNearBottom = () => {
+    const container = containerRef.current;
+    if (!container) return true;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    return distanceFromBottom < 120;
+  };
+
+  const scrollToLatest = (behavior: ScrollBehavior = "smooth") => {
+    bottomRef.current?.scrollIntoView({
+      block: "end",
+      behavior
     });
   };
 
+  useLayoutEffect(() => {
+    scrollToLatest("auto");
+  }, []);
+
   useEffect(() => {
-    scrollToLatest();
+    const shouldStickToBottom = isNearBottom();
+    if (!shouldStickToBottom) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      scrollToLatest("smooth");
+    });
+
+    return () => window.cancelAnimationFrame(frame);
   }, [messages, partnerTyping]);
 
   return (
@@ -67,7 +86,7 @@ export function ChatPanel({
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-10 bg-gradient-to-b from-[rgba(255,248,246,0.95)] to-transparent" />
         <div
           ref={containerRef}
-          className="soft-scrollbar flex h-full flex-1 flex-col gap-3 overflow-y-auto px-4 py-4"
+          className="soft-scrollbar flex h-full flex-1 flex-col gap-3 overflow-y-auto px-4 py-4 pr-3"
           onScroll={(event) => {
             const element = event.currentTarget;
             const distanceFromBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
@@ -119,6 +138,8 @@ export function ChatPanel({
               {partnerName} is typing...
             </motion.div>
           ) : null}
+
+          <div ref={bottomRef} className="h-px w-full shrink-0" />
         </div>
 
         {showJumpToLatest ? (
