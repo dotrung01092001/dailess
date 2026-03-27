@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowLeft, Camera, CameraOff, LoaderCircle, RotateCcw, Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { cameraFilters, type CameraFilterId, getCameraFilterStyle } from "../lib/camera-filters";
 
 type Props = {
   open: boolean;
@@ -12,29 +13,13 @@ type Props = {
   onCapture: (file: File, filter: string, caption: string) => Promise<void>;
 };
 
-const filters = [
-  { id: "soft", label: "Soft" },
-  { id: "warm", label: "Warm" },
-  { id: "ocean", label: "Ocean" },
-  { id: "rose", label: "Rose" },
-  { id: "mono", label: "Mono" }
-] as const;
-
-function getFilterClass(filter: (typeof filters)[number]["id"]) {
-  if (filter === "warm") return "sepia-[.2] saturate-125";
-  if (filter === "ocean") return "hue-rotate-[165deg] saturate-115";
-  if (filter === "rose") return "hue-rotate-[330deg] saturate-125 brightness-105";
-  if (filter === "mono") return "grayscale contrast-110";
-  return "brightness-105";
-}
-
 export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [error, setError] = useState("");
   const [caption, setCaption] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState<(typeof filters)[number]["id"]>("soft");
+  const [selectedFilter, setSelectedFilter] = useState<CameraFilterId>("soft");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
 
@@ -123,13 +108,26 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
             </div>
           ) : hasPreview ? (
             <div className="relative h-full w-full">
-              <Image src={previewUrl!} alt="Captured moment preview" fill unoptimized className={`object-cover ${getFilterClass(selectedFilter)}`} />
+              <Image
+                src={previewUrl!}
+                alt="Captured moment preview"
+                fill
+                unoptimized
+                className="object-cover"
+                style={{ filter: getCameraFilterStyle(selectedFilter) }}
+              />
               <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/30 to-transparent" />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/50 to-transparent" />
             </div>
           ) : (
             <>
-              <video ref={videoRef} className={`h-full w-full ${getFilterClass(selectedFilter)}`} playsInline muted />
+              <video
+                ref={videoRef}
+                className="h-full w-full object-cover"
+                style={{ filter: getCameraFilterStyle(selectedFilter) }}
+                playsInline
+                muted
+              />
               <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/30 to-transparent" />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/50 to-transparent" />
             </>
@@ -147,7 +145,7 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
         </div>
 
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-          {filters.map((filter) => (
+          {cameraFilters.map((filter) => (
             <button
               key={filter.id}
               type="button"
@@ -220,18 +218,7 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
                 const ctx = canvas.getContext("2d");
                 if (!ctx) return;
 
-                if (selectedFilter === "warm") {
-                  ctx.filter = "saturate(1.1) sepia(0.18)";
-                } else if (selectedFilter === "ocean") {
-                  ctx.filter = "hue-rotate(165deg) saturate(1.12)";
-                } else if (selectedFilter === "rose") {
-                  ctx.filter = "hue-rotate(330deg) saturate(1.12) brightness(1.04)";
-                } else if (selectedFilter === "mono") {
-                  ctx.filter = "grayscale(1) contrast(1.1)";
-                } else {
-                  ctx.filter = "brightness(1.05)";
-                }
-
+                ctx.filter = getCameraFilterStyle(selectedFilter);
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.82));
                 if (!blob) return;

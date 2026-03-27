@@ -4,20 +4,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Camera, Hourglass } from "lucide-react";
 import Image from "next/image";
 import { api } from "../lib/api";
+import { getCameraFilterStyle } from "../lib/camera-filters";
 import type { Moment, User } from "../lib/types";
 
 type Props = {
   moments: Moment[];
   currentUser: User;
 };
-
-function getMomentFilterClass(filter: string) {
-  if (filter === "warm") return "sepia-[.22] saturate-125";
-  if (filter === "ocean") return "hue-rotate-[165deg] saturate-110";
-  if (filter === "rose") return "hue-rotate-[330deg] saturate-125 brightness-105";
-  if (filter === "mono") return "grayscale contrast-110";
-  return "brightness-105";
-}
 
 export function MomentsFeed({ moments, currentUser }: Props) {
   return (
@@ -49,7 +42,8 @@ export function MomentsFeed({ moments, currentUser }: Props) {
                     alt="Daily moment"
                     fill
                     unoptimized
-                    className={`object-cover ${getMomentFilterClass(moment.filter)}`}
+                    className="object-cover"
+                    style={{ filter: getCameraFilterStyle(moment.filter) }}
                   />
                 </div>
                 <div className="relative flex h-full flex-col justify-between rounded-[22px] bg-black/10 p-3">
