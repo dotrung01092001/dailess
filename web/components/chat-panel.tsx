@@ -146,7 +146,7 @@ export function ChatPanel({
           <button
             type="button"
             className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-full bg-[var(--brown-deep)] px-4 py-2 text-sm text-white shadow-lg"
-            onClick={scrollToLatest}
+            onClick={() => scrollToLatest()}
           >
             <ArrowDown className="h-4 w-4" />
             Latest
