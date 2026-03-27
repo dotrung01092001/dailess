@@ -25,6 +25,14 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
   const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("environment");
   const hasPreview = Boolean(previewUrl && capturedFile);
 
+  const clearPreview = useCallback(() => {
+    setPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    setCapturedFile(null);
+  }, []);
+
   const stopStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
@@ -87,11 +95,8 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
             className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90"
             onClick={() => {
               if (hasPreview) {
-                setPreviewUrl((current) => {
-                  if (current) URL.revokeObjectURL(current);
-                  return null;
-                });
-                setCapturedFile(null);
+                clearPreview();
+                void startCamera();
                 return;
               }
               onClose();
@@ -204,11 +209,8 @@ export function CameraSheet({ open, loading, onClose, onCapture }: Props) {
                 type="button"
                 className="flex items-center gap-2 rounded-full bg-white px-4 py-3 text-sm text-[var(--brown-deep)]"
                 onClick={() => {
-                  setPreviewUrl((current) => {
-                    if (current) URL.revokeObjectURL(current);
-                    return null;
-                  });
-                  setCapturedFile(null);
+                  clearPreview();
+                  void startCamera();
                 }}
                 disabled={loading}
               >
